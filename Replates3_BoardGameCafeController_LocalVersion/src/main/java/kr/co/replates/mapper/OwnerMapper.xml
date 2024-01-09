@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.replates.mapper.OwnerMapper">
+<!-- 카운터 메인 테이블 조회 -->
+<select id="emptyDeskCheck" resultType="kr.co.replates.entity.PlayDesk" parameterType="kr.co.replates.entity.PlayDesk">
+	select * from playDesk
+</select>
+
+<!-- ====================매장 관리 페이지==================== -->
+<select id="getDeskInfo" resultType="kr.co.replates.entity.PlayDesk" parameterType="int">
+	select * from playDesk where desk_idx=#{desk_idx}
+</select>
+
+<select id="getDeskOrderList" resultType="kr.co.replates.entity.DeskOrder" parameterType="int">
+	select * from deskOrder where desk_idx=#{desk_idx}
+</select>
+
+<update id="roomClear" parameterType="int">
+	update playDesk set player_ID='',player_Name='',game_Name='',playTime=0 where desk_idx=#{desk_idx}
+</update>
+
+<delete id="orderClear" parameterType="int">
+	delete from deskOrder where desk_idx=#{desk_idx}
+</delete>
+
+<select id="getTotalSell" resultType="kr.co.replates.entity.TotalSell" parameterType="Date">
+	select * from totalSell where day_Data=#{date}
+</select>
+
+<select id="getPlayTime" resultType="kr.co.replates.entity.PlayDesk" parameterType="int">
+	select Player_ID, playTime, game_Name from playDesk where desk_idx=#{desk_idx}
+</select>
+
+<select id="getFoodPrice" resultType="kr.co.replates.entity.DeskOrder" parameterType="int">
+	select food_Price from deskOrder where desk_idx=#{desk_idx}
+</select>
+
+<insert id="addTotalSell" parameterType="kr.co.replates.entity.TotalSell">
+	insert into totalSell(day_Data,total_Price,food_Price,playTime_Price)
+	values (#{day_Data},#{total_Price},#{food_Price},#{playTime_Price})
+</insert>
+
+<update id="updateTotalSell" parameterType="kr.co.replates.entity.TotalSell">
+	update totalSell set total_Price=#{total_Price},food_Price=#{food_Price},playTime_Price=#{playTime_Price} where day_Data=#{day_Data}
+</update>
+
+<select id="checkPlayer" resultType="kr.co.replates.entity.Player" parameterType="String">
+	select * from player where player_ID=#{player_ID}
+</select>
+
+
+<update id="updatePlayer_Payment" parameterType="kr.co.replates.entity.Player">
+	update player set player_Payment=#{player_Payment} where player_ID=#{player_ID}
+</update>
+
+<update id="updateDeskAlram" parameterType="int">
+	update playDesk set desk_Alarm='false', call_Alarm='false' where desk_idx=#{desk_idx}
+</update>
+
+<update id="paymentGameCountUp" parameterType="String">
+	update gameMenu set game_Count=game_Count+1 where game_Name=#{game_Namme}
+</update>
+
+<select id="playerRating" resultType="kr.co.replates.entity.Player" parameterType="String">
+	select player_Rating from player where player_ID=#{player_ID}
+</select>
+
+<!-- ====================회원 관리 페이지==================== -->
+<sql id="searchPlayerList">
+	<if test="searchType=='name'">
+		where player_Name like concat('%', #{searchKey}, '%')
+	</if>
+		
+	<if test="searchType=='id'">
+		where player_ID like concat('%', #{searchKey}, '%')
+	</if>
+</sql>
+
+<select id="playerGetList" parameterType="kr.co.replates.entity.Criteria" resultType="kr.co.replates.entity.Player">
+	select * from player<include refid="searchPlayerList"/> order by player_idx desc
+	limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="selectPlayer" parameterType="int" resultType="kr.co.replates.entity.Player">
+	select * from player where player_idx=#{player_idx}
+</select>
+
+<delete id="playerDelete" parameterType="kr.co.replates.entity.Player">
+	delete from player where player_idx=#{player_idx}
+</delete>
+
+<update id="playerUpdate" parameterType="kr.co.replates.entity.Player">
+	update player set player_PW=#{player_PW} where player_idx=#{player_idx}
+</update>
+
+<select id="totalCount" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from player
+	<include refid="searchPlayerList"/>
+</select>
+
+<select id="playerDupCheck" resultType="kr.co.replates.entity.Player" parameterType="kr.co.replates.entity.Player">
+	select * from player where player_ID=#{player_ID}
+</select>
+
+<!-- ====================상품 관리 페이지==================== -->
+<!-- ==========음식 관리========== -->
+<sql id="searchFoodList">
+	<if test="foodSearchType=='foodName'">
+		where food_Name like concat('%', #{foodSearchKey}, '%')
+	</if>
+		
+	<if test="foodSearchType=='foodType'">
+		where food_Type like concat('%', #{foodSearchKey}, '%')
+	</if>
+</sql>
+
+<select id="foodGetList" parameterType="kr.co.replates.entity.Criteria" resultType="kr.co.replates.entity.FoodMenu">
+	select * from foodMenu<include refid="searchFoodList"/> order by food_idx desc
+	limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="totalCount2" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from foodMenu
+	<include refid="searchFoodList"/>
+</select>
+
+<select id="selectFood" parameterType="int" resultType="kr.co.replates.entity.FoodMenu">
+	select * from foodMenu where food_idx=#{food_idx}
+</select>
+
+<update id="foodUpdate" parameterType="kr.co.replates.entity.FoodMenu">
+    <if test="food_Image == ''">
+        <!-- 새 이미지가 업로드된 경우에만 이미지를 업데이트 -->
+        update foodMenu set food_Name=#{food_Name}, food_Count=#{food_Count}, food_Price=#{food_Price}, food_Type=#{food_Type}, food_Image=#{food_Image}
+        where food_idx=#{food_idx}
+    </if>
+    <if test="food_Image != ''">
+        <!-- 이미지가 업로드되지 않은 경우 이미지를 업데이트하지 않음 -->
+        update foodMenu set food_Name=#{food_Name}, food_Count=#{food_Count}, food_Price=#{food_Price}, food_Type=#{food_Type}
+        where food_idx=#{food_idx}
+    </if>
+</update>
+
+<delete id="foodDelete" parameterType="kr.co.replates.entity.FoodMenu">
+	delete from foodMenu where food_idx=#{food_idx}
+</delete>
+
+<insert id="foodInsert" parameterType="kr.co.replates.entity.FoodMenu">
+	insert into foodMenu(food_Name, food_Count, food_Price, food_Type, food_Image)
+	values (#{food_Name}, #{food_Count}, #{food_Price}, #{food_Type}, #{food_Image})
+</insert>
+
+<select id="foodDupCheck" resultType="kr.co.replates.entity.FoodMenu" parameterType="kr.co.replates.entity.FoodMenu">
+	select * from foodMenu where food_Name=#{food_Name}
+</select>
+
+<update id="foodImageUpdate" parameterType="kr.co.replates.entity.FoodMenu">
+	update foodMenu set food_Image=#{food_Image} where food_idx=#{food_idx}
+</update>
+
+
+<!-- ==========게임 관리========== -->
+<sql id="searchGameList">
+	<if test="gameSearchType=='gameName'">
+		where game_Name like concat('%', #{gameSearchKey}, '%')
+	</if>
+		
+	<if test="gameSearchType=='gameNum'">
+		where game_PlayerNum like concat('%', #{gameSearchKey}, '%')
+	</if>
+</sql>
+
+<select id="gameGetList" parameterType="kr.co.replates.entity.Criteria" resultType="kr.co.replates.entity.GameMenu">
+	select * from gameMenu<include refid="searchGameList"/> order by game_idx desc
+	limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="totalCount3" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from gameMenu
+	<include refid="searchGameList"/>
+</select>
+
+<select id="selectGame" parameterType="int" resultType="kr.co.replates.entity.GameMenu">
+	select * from gameMenu where game_idx=#{game_idx}
+</select>
+
+<update id="gameUpdate" parameterType="kr.co.replates.entity.GameMenu">
+	<if test="game_Image == ''">
+		<!-- 새 이미지가 업로드된 경우에만 이미지를 업데이트 -->
+		update gameMenu set game_Name=#{game_Name},game_Count=#{game_Count}, game_TotalCount=#{game_TotalCount}, game_Price=#{game_Price}, game_PlayerNum=#{game_PlayerNum}, game_Image=#{game_Image}
+		where game_idx=#{game_idx}
+	</if>
+	<if test="game_Image != ''">
+		update gameMenu set game_Name=#{game_Name},game_Count=#{game_Count}, game_TotalCount=#{game_TotalCount}, game_Price=#{game_Price}, game_PlayerNum=#{game_PlayerNum}
+		where game_idx=#{game_idx}
+	</if>
+</update>
+
+<delete id="gameDelete" parameterType="kr.co.replates.entity.GameMenu">
+	delete from gameMenu where game_idx=#{game_idx}
+</delete>
+
+<insert id="gameInsert" parameterType="kr.co.replates.entity.GameMenu">
+	insert into gameMenu(game_Name, game_Count, game_TotalCount, game_Price, game_info, game_PlayerNum, game_Image)
+	values (#{game_Name},#{game_Count},#{game_TotalCount},#{game_Price},#{game_info},#{game_PlayerNum},#{game_Image})
+</insert>
+
+<select id="gameDupCheck" resultType="kr.co.replates.entity.GameMenu" parameterType="kr.co.replates.entity.GameMenu">
+	select * from gameMenu where game_Name=#{game_Name}
+</select>
+
+<update id="gameImageUpdate" parameterType="kr.co.replates.entity.GameMenu">
+	update gameMenu set game_Image=#{game_Image} where game_idx=#{game_idx}
+</update>
+
+
+<!-- ====================매출 관리 페이지==================== -->
+<select id="getSevenDaySales" resultType="kr.co.replates.entity.TotalSell">
+    SELECT DATE_FORMAT(day_Data, '%Y-%m-%d') AS day_Data, SUM(total_Price) AS total_Price
+    FROM totalSell
+    GROUP BY DATE_FORMAT(day_Data, '%Y-%m-%d')
+    ORDER BY day_Data;
+</select>
+
+<select id="selectDate" parameterType="Date" resultType="kr.co.replates.entity.TotalSell">
+	select total_Price from totalSell where day_Data=#{day_Data}
+</select>
+
+</mapper>

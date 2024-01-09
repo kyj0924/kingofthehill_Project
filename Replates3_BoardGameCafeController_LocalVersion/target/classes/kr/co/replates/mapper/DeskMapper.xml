@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.replates.mapper.DeskMapper">
+
+	<select id="foodInfo" resultType="kr.co.replates.entity.FoodMenu">
+		select * from foodMenu order by field(food_Type, '음료', '음식'), food_idx
+	</select>
+	
+	<insert id="insertOrder" parameterType="kr.co.replates.entity.DeskOrder">
+		insert into deskOrder (desk_idx, food_Name, food_Price, food_Count) values(#{desk_idx}, #{food_Name}, #{food_Price}, #{food_Count})
+	</insert>
+
+	<select id="oneFoodInfo" resultType="kr.co.replates.entity.FoodMenu" parameterType="int">
+		select * from foodMenu where food_idx=#{food_idx}
+	</select>
+
+	<sql id="search">
+		<if test="bgstype=='game_Name'">
+			where game_Name like concat('%', #{bgskeyword},'%')
+		</if>
+		<if test="bgstype=='game_PlayerNum'">
+			where game_PlayerNum like concat('%', #{bgskeyword},'%')
+		</if>
+	</sql>
+	<select id="bgsgetList" resultType="kr.co.replates.entity.GameMenu" 
+	parameterType="kr.co.replates.entity.Criteria">
+	SELECT * FROM gameMenu <include refid="search"/> order by game_idx desc
+	limit #{pageStart},#{perPageNum}
+	</select>
+	
+	
+	<select id="bgstotalCount" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+ 		select count(*) from gameMenu
+ 		<include refid="search"/> 
+ 	</select>
+ 	
+	<select id="getStartTime" resultType="kr.co.replates.entity.PlayDesk">
+		SELECT * FROM playDesk where desk_idx = #{userId}
+	</select>	
+	
+	<select id="getOrder" resultType="kr.co.replates.entity.DeskOrder">
+		SELECT 
+		deskOrder.food_Name,deskOrder.food_Price,deskOrder.food_Count,deskOrder.order_Time 
+		FROM deskOrder, playDesk
+		where deskOrder.desk_idx = playDesk.desk_idx 
+		and playDesk.desk_idx = #{userId}
+	</select>
+	
+
+	<select id="selectgms" resultType="kr.co.replates.entity.PlayDesk" parameterType="int">
+	    SELECT * from playDesk where desk_idx = #{desk_idx}
+	</select>	
+	
+	
+	<update id="upDateGameName" parameterType="kr.co.replates.entity.PlayDesk">
+		update playDesk set game_Name = #{game_Name} where desk_idx = #{desk_idx}
+	</update>
+	
+	
+	<update id="minusGame" parameterType="kr.co.replates.entity.GameMenu">
+		UPDATE gameMenu SET game_Count = CASE
+		WHEN game_Count > 0 THEN game_Count - 1
+		ELSE 0
+		END
+		WHERE game_Name = #{game_Name}
+	</update>
+	
+	
+	<update id="plusGame" parameterType="kr.co.replates.entity.GameMenu"> 
+		UPDATE gameMenu SET game_Count = game_Count + 1 WHERE game_Name= #{game_Name}
+	</update>
+	
+
+	<update id="updateByFoodOrder" parameterType="kr.co.replates.entity.DeskOrder">
+		update foodMenu set food_Count = food_Count - #{food_Count} where food_Name = #{food_Name}
+	</update>
+	
+	<select id="oneFoodCount" resultType="int" parameterType="kr.co.replates.entity.DeskOrder">
+		select food_Count from foodMenu where food_Name = #{food_Name}
+	</select>
+	
+	<update id="sendAlarm" parameterType="kr.co.replates.entity.PlayDesk">
+		update playDesk set desk_Alarm = #{desk_Alarm} where desk_idx = #{desk_idx}
+	</update>
+	
+	<update id="sendCallAlarm" parameterType="kr.co.replates.entity.PlayDesk">
+		update playDesk set call_Alarm = #{call_Alarm} where desk_idx = #{desk_idx}
+	</update>
+
+</mapper>

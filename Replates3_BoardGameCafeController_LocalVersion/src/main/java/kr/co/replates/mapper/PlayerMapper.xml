@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.replates.mapper.PlayerMapper">
+	<select id="loginCheck" resultType="kr.co.replates.entity.Player" parameterType="String">
+		select * from player where player_ID = #{player_ID}
+	</select>
+	
+	<insert id="insert_Player_Info" parameterType="kr.co.replates.entity.Player">
+		insert into player(player_ID, player_PW, player_Name, player_Tel, player_Email) values (#{player_ID}, #{player_PW}, #{player_Name}, #{player_Tel}, #{player_Email})
+	</insert>
+	
+	<!-- 아이디 중복체크 -->
+	<select id="countById" resultType="int" parameterType="String">
+        select count(*) from player where player_ID = #{player_ID}
+    </select>
+	
+	<update id="update_PlayDesk_Info" parameterType="kr.co.replates.entity.PlayDesk">
+    	update playDesk set player_ID = #{player_ID}, player_Name = #{player_Name}, start_Time = now() where desk_idx = #{desk_idx}
+    </update>
+    
+    <select id="readOneDesk" resultType="kr.co.replates.entity.PlayDesk">
+    	select * from playDesk where desk_idx = #{desk_idx}
+    </select>
+    
+    <update id="update_PlayTime" parameterType="kr.co.replates.entity.PlayDesk">
+    	update playDesk set playTime=#{playTime} where desk_idx = #{desk_idx}
+    </update>
+    
+    <update id="update_Rating" parameterType="kr.co.replates.entity.Player">
+    	update player set player_Rating=#{player_Rating} where player_ID = #{player_ID}
+    </update>
+    
+    <select id="all_Player_Info" resultType="kr.co.replates.entity.Player">
+    	select * from player
+    </select>
+    
+    <update id="update_Payment_Zero">
+    	update player set player_Payment = 0
+    </update>
+    
+    <select id="isLogined" resultType="int" parameterType="kr.co.replates.entity.Player">
+    	select count(*) from playDesk where player_ID = #{player_ID}
+    </select>
+    
+    <select id="payCheck" resultType="String" parameterType="kr.co.replates.entity.PlayDesk">
+    	select IFNULL(player_ID,'') from playDesk where desk_idx = #{desk_idx}
+    </select>
+</mapper>

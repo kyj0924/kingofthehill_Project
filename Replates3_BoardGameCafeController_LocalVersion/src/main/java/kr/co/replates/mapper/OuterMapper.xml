@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.replates.mapper.OuterMapper">
+
+<!-- 요청사항 -->
+
+<sql id="searchRequestList">
+	<if test="requestSearchType=='request_Title'">
+		where request_Title like concat('%', #{requestSearchKey}, '%')
+	</if>
+
+	<if test="requestSearchType=='request_Writer'">
+		where request_Writer like concat('%', #{requestSearchKey}, '%')
+	</if>
+</sql>
+
+<select id="getRequest_Board" parameterType="kr.co.replates.entity.Criteria" resultType="kr.co.replates.entity.Request_Board">
+select * from request_Board<include refid="searchRequestList"/> order by request_idx desc limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="totalCount6" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from request_Board <include refid="searchRequestList"/>
+</select>
+
+<insert id="requestWrite" parameterType="kr.co.replates.entity.Request_Board">
+insert into request_Board(request_Title,request_Content,request_Writer) values(#{request_Title},#{request_Content},#{request_Writer})
+</insert>
+
+<select id="getselectRequest" parameterType="int" resultType="kr.co.replates.entity.Request_Board">
+select * from request_Board where request_idx=#{request_idx}
+</select>
+
+<insert id="addComment" parameterType="kr.co.replates.entity.Comment">
+	insert into comment(comment_Content,comment_Writer,comment_Board_idx) values (#{comment_Content},#{comment_Writer},#{comment_Board_idx})
+</insert>
+
+<select id="getComment" parameterType="int" resultType="kr.co.replates.entity.Comment">
+	select * from comment where comment_Board_idx=#{comment_Board_idx} ORDER BY comment_Board_idx ASC
+</select>
+
+<delete id="deleteComment" parameterType="kr.co.replates.entity.Comment">
+	delete from comment where comment_Board_idx=#{comment_Board_idx} and comment_idx=#{comment_idx}
+</delete>
+
+<update id="request_BoardUpdate" parameterType="kr.co.replates.entity.Request_Board">
+	update request_Board set request_Title=#{request_Title}, request_Content=#{request_Content} where request_idx=#{request_idx}
+</update>
+
+<delete id="requestRemove" parameterType="int">
+	delete from request_Board where request_idx=#{request_idx}
+</delete>
+
+<delete id="removeComment" parameterType="int">
+	delete from comment where comment_Board_idx=#{idx}
+</delete>
+
+<update id="viewCountup" parameterType="int">
+	update request_Board set request_ViewCount = request_ViewCount+1 where request_idx=#{idx}
+</update>
+
+<!-- ===============친구 찾기=============== -->
+<insert id="nf_addComment" parameterType="kr.co.replates.entity.Nf_Comment">
+	insert into nf_Comment(nf_comment_Content,nf_comment_Writer,nf_comment_Board_idx) values (#{nf_comment_Content},#{nf_comment_Writer},#{nf_comment_Board_idx})
+</insert>
+
+<select id="nf_getComment" parameterType="int" resultType="kr.co.replates.entity.Nf_Comment">
+	select * from nf_Comment where nf_comment_Board_idx=#{nf_comment_Board_idx} ORDER BY nf_comment_Board_idx ASC
+</select>
+
+<delete id="nf_deleteComment" parameterType="kr.co.replates.entity.Nf_Comment">
+	delete from nf_Comment where nf_comment_Board_idx=#{nf_comment_Board_idx} and nf_comment_idx=#{nf_comment_idx}
+</delete>
+
+<sql id="searchFriendList">
+	<if test="friendSearchType=='nf_Title'">
+		where nf_Title like concat('%', #{friendSearchKey}, '%')
+	</if>
+
+	<if test="friendSearchType=='player_ID'">
+		where player_ID like concat('%', #{friendSearchKey}, '%')
+	</if>
+</sql>
+
+<select id="needFriendGetList" parameterType="kr.co.replates.entity.Criteria" resultType="kr.co.replates.entity.NeedFriend_Board">
+	select * from needFriend_Board<include refid="searchFriendList"/> order by nf_idx desc
+	limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="totalCount4" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from needFriend_Board
+	<include refid="searchFriendList"/>
+</select>
+
+<insert id="nfWrite" parameterType="kr.co.replates.entity.NeedFriend_Board">
+	insert into needFriend_Board(nf_Title,nf_Content,player_ID)
+	values (#{nf_Title},#{nf_Content},#{player_ID})
+</insert>
+
+<select id="selectNeedFriend" resultType="kr.co.replates.entity.NeedFriend_Board">
+	select * from needFriend_Board where nf_idx=#{nf_idx}
+</select>
+
+<update id="viewCountUpdate">
+	update needFriend_Board set nf_ViewCount=nf_ViewCount+1 where nf_idx=#{nf_idx}
+</update>
+
+<update id="selectFriendUpdate" parameterType="kr.co.replates.entity.NeedFriend_Board">
+	update needFriend_Board set nf_Title=#{nf_Title}, nf_Content=#{nf_Content} where nf_idx=#{nf_idx}
+</update>
+
+<delete id="needFriendDelete" parameterType="kr.co.replates.entity.NeedFriend_Board">
+	delete from needFriend_Board where nf_idx=#{nf_idx}
+</delete>
+
+
+
+
+<sql id="searchNoticeList">
+	<if test="noticeSearchType == 'notice_Title'">
+		where notice_Title like concat('%', #{noticeSearchKey}, '%')
+	</if>
+</sql>
+
+<select id="noticeInfo" resultType="kr.co.replates.entity.Notice_Board" parameterType="kr.co.replates.entity.Criteria">
+	select * from notice_Board <include refid="searchNoticeList"/> order by notice_idx desc limit #{pageStart},#{perPageNum}
+</select>
+
+<select id="oneNoticeInfo" resultType="kr.co.replates.entity.Notice_Board" parameterType="int">
+	select * from notice_Board where notice_idx=#{notice_idx}
+</select>
+
+<insert id="noticeWrite" parameterType="kr.co.replates.entity.Notice_Board">
+	insert into notice_Board(notice_Title, notice_Content, notice_Writer) values (#{notice_Title}, #{notice_Content}, #{notice_Writer})
+</insert>
+
+<update id="noticeCountUp" parameterType="int">
+	update notice_Board set notice_ViewCount = notice_ViewCount + 1 where notice_idx = #{notice_idx}
+</update>
+
+<update id="noticeInfoUpdate" parameterType="kr.co.replates.entity.Notice_Board">
+	update notice_Board set notice_Title = #{notice_Title}, notice_Content = #{notice_Content} where notice_idx = #{notice_idx}
+</update>
+
+<delete id="noticeRemove" parameterType="int">
+	delete from notice_Board where notice_idx = #{notice_idx}
+</delete>
+
+<select id="totalCount5" resultType="int" parameterType="kr.co.replates.entity.Criteria">
+	select count(*) from notice_Board <include refid="searchNoticeList"/>
+</select>
+
+
+
+</mapper>
